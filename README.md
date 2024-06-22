@@ -57,3 +57,20 @@ begin voor android versie te proberen
 downloaden andruid studio
 min 40
 android studio is geinstaleerd
+min 41
+android studio todo app werkt niet
+
+min 45 
+testen op ios met expo app, het werkt goed
+
+min 50
+proberen het werkend te krijgen op android studio chatgpt vragen om hulp
+
+min 55
+Probleem gevonden en opgelost, mijn vpn blokkeerde de verbinding met de server van expo
+
+1u
+app werkt op android studio en ios en web
+
+zeer makkelijke app, maar ik heb veel geleerd over react native en expo
+zeer gebruiksvriendelijk en snel om te gebruiken, zeker met ai hulp
