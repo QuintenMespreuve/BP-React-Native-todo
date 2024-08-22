@@ -1,130 +1,109 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, FlatList, StyleSheet, View } from 'react-native';
-import { Input, Button, ListItem, CheckBox, Icon } from '@rneui/themed';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TextInput, Button, FlatList, TouchableOpacity } from 'react-native';
 
-type Task = {
+interface Todo {
   id: string;
-  text: string;
+  description: string;
   completed: boolean;
-};
+}
 
-const HomeScreen: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [taskText, setTaskText] = useState('');
+export default function App() {
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [description, setDescription] = useState('');
 
-  useEffect(() => {
-    loadTasks();
-  }, []);
-
-  const loadTasks = async () => {
-    try {
-      const tasksString = await AsyncStorage.getItem('tasks');
-      if (tasksString) {
-        const loadedTasks: Task[] = JSON.parse(tasksString);
-        setTasks(loadedTasks);
-      }
-    } catch (error) {
-      console.error('Failed to load tasks', error);
-    }
+  const addTodo = () => {
+    if (description.trim() === '') return;
+    setTodos([
+      ...todos,
+      { id: Date.now().toString(), description, completed: false }
+    ]);
+    setDescription('');
   };
 
-  const saveTasks = async (tasks: Task[]) => {
-    try {
-      const tasksString = JSON.stringify(tasks);
-      await AsyncStorage.setItem('tasks', tasksString);
-    } catch (error) {
-      console.error('Failed to save tasks', error);
-    }
+  const toggleComplete = (id: string) => {
+    setTodos(todos.map(todo => 
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    ));
   };
 
-  const addTask = () => {
-    if (taskText.trim().length === 0) return;
-
-    const newTask: Task = {
-      id: Date.now().toString(),
-      text: taskText,
-      completed: false,
-    };
-    const newTasks = [...tasks, newTask];
-    setTasks(newTasks);
-    saveTasks(newTasks);
-    setTaskText('');
+  const removeTodo = (id: string) => {
+    setTodos(todos.filter(todo => todo.id !== id));
   };
 
-  const toggleTaskCompletion = (id: string) => {
-    const updatedTasks = tasks.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    );
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-  };
-
-  const deleteTask = (id: string) => {
-    const updatedTasks = tasks.filter(task => task.id !== id);
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-  };
+  const renderItem = ({ item }: { item: Todo }) => (
+    <View style={styles.todoItem}>
+      <Text style={item.completed ? styles.todoTextCompleted : styles.todoText}>
+        {item.description}
+      </Text>
+      <View style={styles.todoActions}>
+        <Button title={item.completed ? "Undo" : "Complete"} onPress={() => toggleComplete(item.id)} />
+        <Button title="Delete" onPress={() => removeTodo(item.id)} />
+      </View>
+    </View>
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <Text style={styles.title}>Todo App</Text>
       <View style={styles.inputContainer}>
-        <Input
-          placeholder="Add a task"
-          value={taskText}
-          onChangeText={setTaskText}
-          containerStyle={styles.input}
+        <TextInput
+          style={styles.input}
+          placeholder="Add a new task"
+          value={description}
+          onChangeText={setDescription}
         />
-        <Button
-          title="Add"
-          onPress={addTask}
-          buttonStyle={styles.addButton}
-        />
+        <Button title="Add" onPress={addTodo} />
       </View>
       <FlatList
-        data={tasks}
+        data={todos}
+        renderItem={renderItem}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <ListItem bottomDivider>
-            <CheckBox
-              checked={item.completed}
-              onPress={() => toggleTaskCompletion(item.id)}
-            />
-            <ListItem.Content>
-              <ListItem.Title style={item.completed ? styles.completedTask : null}>
-                {item.text}
-              </ListItem.Title>
-            </ListItem.Content>
-            <Icon
-              name="delete"
-              onPress={() => deleteTask(item.id)}
-            />
-          </ListItem>
-        )}
       />
-    </SafeAreaView>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
   },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 20,
   },
   input: {
     flex: 1,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    padding: 10,
+    marginRight: 10,
   },
-  addButton: {
-    marginLeft: 10,
+  todoItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
-  completedTask: {
+  todoText: {
+    fontSize: 18,
+  },
+  todoTextCompleted: {
+    fontSize: 18,
     textDecorationLine: 'line-through',
+    color: '#aaa',
+  },
+  todoActions: {
+    flexDirection: 'row',
   },
 });
-
-export default HomeScreen;
